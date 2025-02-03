@@ -74,4 +74,30 @@ class TglTransaksi extends Model
     {
         return $this->belongsTo(Anggota::class, 'id_anggota', 'id_anggota');
     }
+
+    public function calculateLateFee()
+    {
+        $returnDate = $this->tgl_pengembalian ?? Carbon::now();
+        
+        // Debug log
+        \Log::info('Tanggal Kembali: ' . $this->tgl_kembali);
+        \Log::info('Tanggal Sekarang: ' . $returnDate);
+        
+        if ($returnDate > $this->tgl_kembali) {
+            // Gunakan diffInDays dengan absolute = false untuk mendapatkan nilai positif
+            $daysLate = $returnDate->startOfDay()->diffInDays($this->tgl_kembali, false);
+            
+            // Pastikan daysLate positif
+            $daysLate = abs($daysLate);
+            
+            \Log::info('Hari Terlambat: ' . $daysLate);
+            \Log::info('Denda per Hari: ' . $this->pustaka->denda_terlambat);
+            
+            if ($daysLate > 0) {
+                return $daysLate * $this->pustaka->denda_terlambat;
+            }
+        }
+        
+        return 0;
+    }
 } 

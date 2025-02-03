@@ -26,6 +26,7 @@
                                     <th>Tanggal Pinjam</th>
                                     <th>Tanggal Kembali</th>
                                     <th>Status</th>
+                                    <th>Denda</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -47,6 +48,20 @@
                                             @endif
                                         </td>
                                         <td>
+                                            @if($transaction->tgl_pengembalian && $transaction->keterangan)
+                                                <span class="text-danger">{{ $transaction->keterangan }}</span>
+                                            @elseif($transaction->fp == '1' && !$transaction->tgl_pengembalian)
+                                                @php
+                                                    $lateFee = $transaction->calculateLateFee();
+                                                @endphp
+                                                @if($lateFee > 0)
+                                                    <span class="text-danger">Estimasi denda: Rp {{ number_format($lateFee, 0, ',', '.') }}</span>
+                                                @else
+                                                    <span class="text-success">Belum ada denda</span>
+                                                @endif
+                                            @endif
+                                        </td>
+                                        <td>
                                             @if($transaction->fp == '0')
                                                 <form action="{{ route('admin.transaksi.approve', $transaction->id_transaksi) }}" method="POST" class="d-inline">
                                                     @csrf
@@ -58,6 +73,13 @@
                                                     @csrf
                                                     <button type="submit" class="btn btn-danger btn-sm">
                                                         <i class="bi bi-x-lg"></i> Tolak
+                                                    </button>
+                                                </form>
+                                            @elseif($transaction->fp == '1' && !$transaction->tgl_pengembalian)
+                                                <form action="{{ route('admin.transaksi.return', $transaction->id_transaksi) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-primary btn-sm">
+                                                        <i class="bi bi-arrow-return-left"></i> Mengambil buku
                                                     </button>
                                                 </form>
                                             @endif

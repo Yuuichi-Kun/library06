@@ -52,8 +52,14 @@ class TransaksiController extends Controller
     {
         $transaction = TglTransaksi::findOrFail($id);
         
+        // Hitung denda keterlambatan
+        $lateFee = $transaction->calculateLateFee();
+        
         // Update tanggal pengembalian
         $transaction->tgl_pengembalian = now();
+        if ($lateFee > 0) {
+            $transaction->keterangan = "Denda keterlambatan: Rp " . number_format($lateFee, 0, ',', '.');
+        }
         $transaction->save();
         
         // Update status buku menjadi tersedia
@@ -61,6 +67,11 @@ class TransaksiController extends Controller
         $book->fp = '1';
         $book->save();
         
-        return back()->with('success', 'Buku berhasil dikembalikan.');
+        $message = 'Buku berhasil dikembalikan.';
+        if ($lateFee > 0) {
+            $message .= ' Denda keterlambatan: Rp ' . number_format($lateFee, 0, ',', '.');
+        }
+        
+        return back()->with('success', $message);
     }
 } 

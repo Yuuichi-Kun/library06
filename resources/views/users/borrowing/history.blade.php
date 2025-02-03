@@ -35,6 +35,7 @@
                                             <th>Tanggal Pinjam</th>
                                             <th>Tanggal Kembali</th>
                                             <th>Status</th>
+                                            <th>Denda</th>
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>
@@ -57,6 +58,24 @@
                                                         <span class="badge bg-info">Sedang Dipinjam</span>
                                                     @elseif($borrowing->tgl_pengembalian)
                                                         <span class="badge bg-success">Dikembalikan pada {{ $borrowing->tgl_pengembalian->format('d/m/Y') }}</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if($borrowing->tgl_pengembalian && $borrowing->keterangan)
+                                                        <span class="text-danger">{{ $borrowing->keterangan }}</span>
+                                                    @elseif($borrowing->fp == '1' && !$borrowing->tgl_pengembalian)
+                                                        @php
+                                                            $lateFee = $borrowing->calculateLateFee();
+                                                        @endphp
+                                                        @if($lateFee > 0)
+                                                            <span class="text-danger">Estimasi denda: Rp {{ number_format($lateFee, 0, ',', '.') }}</span>
+                                                        @else
+                                                            @if(Carbon\Carbon::now() > $borrowing->tgl_kembali)
+                                                                <span class="text-danger">Terlambat</span>
+                                                            @else
+                                                                <span class="text-success">Belum ada denda</span>
+                                                            @endif
+                                                        @endif
                                                     @endif
                                                 </td>
                                                 <td>
@@ -84,7 +103,7 @@
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="6" class="text-center">Tidak ada riwayat peminjaman</td>
+                                                <td colspan="7" class="text-center">Tidak ada riwayat peminjaman</td>
                                             </tr>
                                         @endforelse
                                     </tbody>
@@ -126,6 +145,7 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Auto-hide notifications
     setTimeout(function() {
         const alerts = document.querySelectorAll('.alert');
         alerts.forEach(function(alert) {
@@ -135,6 +155,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }, 5000);
+
+    // Auto-refresh halaman setiap menit
+    setInterval(function() {
+        location.reload();
+    }, 60000);
 });
 </script>
 @endpush

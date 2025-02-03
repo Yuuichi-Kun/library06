@@ -9,14 +9,14 @@ return new class extends Migration
     public function up()
     {
         Schema::table('tbl_anggota', function (Blueprint $table) {
-            $table->string('password', 255)->change(); // Mengubah panjang kolom password menjadi 255
+            $table->string('password', 255)->change();
         });
     }
 
     public function down()
     {
         Schema::table('tbl_anggota', function (Blueprint $table) {
-            $table->string('password', 50)->change(); // Mengembalikan ke panjang semula
+            $table->string('password')->change();
         });
     }
-}; 
+};
